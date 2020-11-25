@@ -108,7 +108,7 @@ class Graph {
     }
 
     // Note this is not the conventional Kruskal's or Prims' MST.
-    calcMstContainingSubset(letterCities) {
+    calcMstContainingSubset(letterCities) {             // O(V^2)
         const nonLetterCities = [];
 
         // Load up nonLetterCities with each city that doesnt have a letter
