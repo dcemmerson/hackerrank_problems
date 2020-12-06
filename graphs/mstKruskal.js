@@ -1,16 +1,14 @@
-
 function kruskals(gNodes, gFrom, gTo, gWeight) {
     const graph = new Graph(gNodes, gFrom, gTo, gWeight);
+    const mstEdges = graph.findMst();
 
-    const mstWeight = graph.calcMst();
-
-    return mstWeight;
+    return mstEdges.reduce((acc, currEdge) => acc + currEdge.weight, 0);
 }
 
 class Graph {
     constructor(gNodes, gFrom, gTo, gWeight) {
-        this.edges = [];
         this.vertices = [];
+        this.edges = [];
 
         for(let i = 0; i < gNodes; i++) {
             this.vertices.push(new Vertex(i));
@@ -19,45 +17,70 @@ class Graph {
         for(let i = 0; i < gFrom.length; i++) {
             const vertexA = this.vertices[gFrom[i] - 1];
             const vertexB = this.vertices[gTo[i] - 1];
-            const currEdge = new Edge(vertexA, vertexB, gWeight[i]);
+            const weight = gWeight[i];
 
-            this.edges.push(currEdge);
+            const edge = new Edge(vertexA, vertexB, weight);
+            this.edges.push(edge);
         }
+
     }
 
-    calcMst() {
-        this.edges.sort(edgeCompare);
-        // while number vertices in our mst < this.verices.length
-        // Remove first edge in this.edges
-        // if edge.vertexA has different root than edge.vertexB
-        //      then add this to our mst
-        // else ignore this edge
-        const mst = new Set(); // Keep track of edges rather than vertices
-        let sum = 0;
+    findMst() {
+        this.edges.sort(edgeSorter);
+        const mstEdges = [];
 
-        while(mst.size < this.vertices.length - 1) {
-            const currEdge = this.edges.shift();
-            const vertexARoot = this.getRoot(currEdge.vertexA);
-            const vertexBRoot = this.getRoot(currEdge.vertexB);
-            if(vertexARoot.index !== vertexBRoot.index) {
-                // mst.add(currEdge.vertexA);
-                // mst.add(currEdge.vertexB);
-                mst.add(currEdge);
-                currEdge.vertexA.prev = vertexBRoot;
-                sum += currEdge.weight;
+        let i = 0;
+        while(mstEdges.length < this.vertices.length - 1) {
+            const currEdge = this.edges[i];
+            const vertexA = currEdge.vertexA;
+            const vertexB = currEdge.vertexB;
+
+            const vertexASet = this.findSet(vertexA);
+            const vertexBSet = this.findSet(vertexB);
+
+            if(vertexASet !== vertexBSet) {
+                mstEdges.push(currEdge);
+                this.union(vertexASet, vertexBSet)
             }
+            i++;
         }
-        return sum;
+        return mstEdges;
     }
 
-    getRoot(v) {
-        while(v.prev) {
-            v = v.prev;
+    findSet(vertex) {
+        if(vertex.parent === vertex) {
+            return vertex;
         }
-        
-        return v;
+
+        vertex.parent = this.findSet(vertex.parent);
+
+        return vertex.parent;
     }
 
+    union(vertexASet, vertexBSet) {
+        if(vertexASet.rank > vertexBSet.rank) {
+            vertexBSet.parent = vertexASet
+        }
+        else if(vertexASet.rank < vertexBSet.rank) {
+            vertexASet.parent = vertexBSet;
+        }
+        else {
+            vertexASet.rank++;
+            vertexBSet.parent = vertexASet;
+        }
+    }
+}
+
+function edgeSorter(e1, e2) {
+    if(e1.weight < e2.weight) {
+        return -1;
+    }
+    else if(e1.weight === e2.weight) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
 }
 
 class Edge {
@@ -71,20 +94,9 @@ class Edge {
 class Vertex {
     constructor(index) {
         this.index = index;
-        this.prev = null;
+        this.rank = 0;
+        this.parent = this;
     }
 }
 
-function edgeCompare(a, b) {
-    if(a.weight < b.weight) {
-        return -1;
-    }
-    else if(a.weight === b.weight) {
-        return 0;
-    }
-    else {
-        return 1;
-    }
-}
-
-console.log(kruskals(5, [1, 1, 1, 1, 2, 3, 4], [2, 3, 4, 5, 3, 4, 5], [20, 50, 70, 90, 30, 40, 60]));
+console.log(kruskals(4, [1, 1, 4, 2, 3, 3], [2, 3, 1, 4, 2, 4], [5, 3, 6, 7, 4, 5]));
