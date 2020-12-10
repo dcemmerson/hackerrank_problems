@@ -17,7 +17,6 @@ function equal(arr) {
     for(let j = 0; j > -5; j--) {
         let numSteps = 0;
         const targetChocolates = min + j;
-        // let currNumSteps = 0;
 
         for(let i = 0; i < arr.length; i++) {
             let numChocolatesDiff = arr[i] - targetChocolates;
@@ -29,7 +28,6 @@ function equal(arr) {
             numSteps += Math.floor(numChocolatesDiff / 1);
             numChocolatesDiff %= 1;
         }
-        // numSteps = Math.max(numSteps, currNumSteps);
 
         minSteps = Math.min(minSteps, numSteps);
     }
